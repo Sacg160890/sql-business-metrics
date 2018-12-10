@@ -1,0 +1,115 @@
+--monthly cohort retention rates.
+SELECT Cohort_month,
+       new_user1,
+       retention_month,
+       retained
+FROM   (SELECT Cohort_month,
+               new_user,
+              ( Visit_pivot.visit_month - User_log.visit_month ) AS
+              retention_month,
+              Count(DISTINCT Visit_pivot.Customer_id) 
+AS            
+              retained,
+
+   FROM (SELECT Customer_id,
+           min(visit_month) AS Cohort_month
+   FROM User_log)first_log, 
+              LEFT JOIN User_log AS Visit_pivot
+                 ON User_log.Customer_id = Visit_pivot.Customer_id
+                     AND User_log.visit_month < Visit_pivot.visit_month
+              LEFT JOIN new_user
+                 ON new_user.Cohort_month = first_log.Cohort_month
+GROUP BY 1,
+         2)
+-------------------------------------------------------------------------------------------------------------------------------------------------+
+Cohort_Month  New_Users  Retention_month  Retained 
+1              123                1        840
+1              123                2        820
+1              123                3        760
+1
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+**overall retention curve**
+
+
+SELECT Cohort_month,
+       new_user1,
+       retention_month,
+       retention_percent
+FROM   (SELECT Cohort_month,
+               new_user,
+              ( Visit_pivot.visit_month - User_log.visit_month ) AS
+              retention_month,
+              Count(DISTINCT Visit_pivot.Customer_id)/new_user1 
+AS 
+              retention_percent
+
+  FROM (SELECT Customer_id,
+           min(visit_month) AS Cohort_month
+   FROM User_log)first_log, 
+              LEFT JOIN User_log AS Visit_pivot
+                 ON User_log.Customer_id = Visit_pivot.Customer_id
+                     AND User_log.visit_month < Visit_pivot.visit_month
+              LEFT JOIN new_user
+                 ON new_user.Cohort_month = first_log.Cohort_month
+GROUP BY 1,
+         2)
+
+
+---------------------------------------------------+
+Cohort_Month  New_Users  Retention_month  Retained 
+1              200                1        84%
+1              123                2        82%
+1              123                3        76%
+ 
+2              200                4        74%
+2              200                4        73%
+2
+
+3              110                5        70%
+3              112                5        70%
+3              114                
+
+
+-------------------------------------------------+
+
+
+New Users 
+new user1 Cohort_month
+1 01/02/2018
+2 02/02/2018
+3 03/03/2018
+4 04/02/2018
+5 05/03/2018
+6 06/02/2018
+7 07/04/2018
+8 08/02/2018
+9 09/02/2018
+10 10/05/2018
+11 11/02/2018
+12 12/06/2018
+13 13/07/2018
+14 14/08/2018
+15 15/02/2018
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+User_log 
+new user1 Cohort_month
+1 01/06/2018
+2 02/08/2018
+3 03/03/2018
+4 04/02/2018
+5 05/09/2018
+6 06/02/2018
+7 07/04/2018
+8 08/02/2018
+9 09/07/2018
+10 10/05/2018
+11 11/02/2018
+12 12/09/2018
+13 13/07/2018
+14 14/09/2018
+15 15/02/2018
+
+
+--------------------------------------------------------------------------------------------
